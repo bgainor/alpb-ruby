@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+require 'csv'
+require 'alpb/schedule'
+
+s = ALPB::Schedule.new
+$team = nil
+if ARGV.count > 0
+  $team = /#{ARGV.first.downcase}/i
+  games = s.team_games($team)
+else
+  games = s.games.dup
+end
+
+$out = CSV($stdout, col_sep: "\t", write_headers: true, headers: %i(away home date score))
+games.select! { |g| (-1..3).cover?(Date.today - g.date.to_date) }
+seen_future_game = false
+games.sort_by(&:date).each do |g|
+  row = g.to_h
+  if row[:score] == '---'
+    next if seen_future_game
+    seen_future_game = true
+  end
+  $out << row
+end
