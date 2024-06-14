@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'csv'
+require 'rainbow'
 require 'alpb/schedule'
 
 s = ALPB::Schedule.new
@@ -19,6 +20,18 @@ games.sort_by(&:date).each do |g|
   if row[:score] == '---'
     next if seen_future_game
     seen_future_game = true
+  elsif row[:status] == 'final'
+    away, home = row[:score].split('-')
+    $winner = :away if away.to_i > home.to_i
+    $winner = :home if home.to_i > away.to_i
+  end
+  if $winner == :away
+    row[:away] = Rainbow(row[:away]).bright 
+    row[:score] = Rainbow(row[:score][/^.*(?=-)/]).bright + row[:score][/-.*$/] unless row[:score] == '---'
+  end
+  if $winner == :home
+    row[:home] = Rainbow(row[:home]).bright
+    row[:score] = row[:score][/^.*-/] + Rainbow(row[:score][/(?<=-).*$/]).bright unless row[:score] == '---'
   end
   $out << row
 end
