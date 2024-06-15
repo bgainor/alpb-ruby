@@ -39,6 +39,11 @@ module ALPB
         get_live_score
       end
     end
+    def winner
+      if @status == 'final'
+        @score.key(@score.values.max)
+      end
+    end
     def get_live_score
       json = get_json
       {away: json['awayscore'],
